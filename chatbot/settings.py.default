@@ -1,0 +1,216 @@
+GROUP_ID = ''
+TOKEN = ''
+
+departure_time_day = (
+    '11:00',
+    '14:30',
+    '16:45',
+    '18:50',
+    '22:55',
+)
+
+departure_time_week = {
+    'weekdays': (3, 6),
+    'time': '10:00'
+}
+departure_time_month = {
+    'monthdays': (10, 20),
+    'time': '15:00'
+}
+FLIGHT_CONF = {
+    'Москва': {
+        'Париж': None,
+        'Лондон': {
+            'periodicity': 'month',
+            'datetime': departure_time_month
+        },
+        'Вашингтон': {
+            'periodicity': 'day',
+            'datetime': departure_time_day,
+        },
+        'Берлин': {
+            'periodicity': 'day',
+            'datetime': departure_time_day,
+        },
+    },
+    'Париж': {
+        'Москва': None,
+        'Лондон': {
+            'periodicity': 'day',
+            'datetime': departure_time_day,
+        },
+        'Вашингтон': {
+            'periodicity': 'week',
+            'datetime': departure_time_week,
+        },
+        'Берлин': {
+            'periodicity': 'day',
+            'datetime': departure_time_day,
+        },
+    },
+    'Лондон': {
+        'Москва': {
+            'periodicity': 'month',
+            'datetime': departure_time_month
+        },
+        'Париж': {
+            'periodicity': 'day',
+            'datetime': departure_time_day,
+        },
+        'Вашингтон': {
+            'periodicity': 'day',
+            'datetime': departure_time_day,
+        },
+        'Берлин': {
+            'periodicity': 'day',
+            'datetime': departure_time_day,
+        },
+    },
+    'Вашингтон': {
+        'Москва': {
+            'periodicity': 'day',
+            'datetime': departure_time_day,
+        },
+        'Париж': {
+            'periodicity': 'week',
+            'datetime': departure_time_week,
+        },
+        'Лондон': {
+            'periodicity': 'day',
+            'datetime': departure_time_day,
+        },
+        'Берлин': {
+            'periodicity': 'day',
+            'datetime': departure_time_day,
+        },
+    },
+    'Берлин': {
+        'Москва': {
+            'periodicity': 'day',
+            'datetime': departure_time_day,
+        },
+        'Париж': {
+            'periodicity': 'day',
+            'datetime': departure_time_day,
+        },
+        'Лондон': {
+            'periodicity': 'day',
+            'datetime': departure_time_day,
+        },
+        'Вашингтон': {
+            'periodicity': 'day',
+            'datetime': departure_time_day,
+        },
+    },
+}
+
+CITIES = tuple(FLIGHT_CONF.keys())
+
+INTENTS = [
+    {
+        'name': 'Приветствие',
+        'tokens': ('хай', 'прив', 'здравству', 'хэй',),
+        'scenario': None,
+        'answer': 'Приветствую!\nДля начала выбора билета введите /ticket',
+    },
+    {
+        'name': 'Справка',
+        'tokens': ('/help',),
+        'scenario': None,
+        'answer': 'Для начала выбора билета введите /ticket',
+    },
+    {
+        'name': 'Регистрация',
+        'tokens': ('/ticket',),
+        'scenario': 'registration',
+        'answer': None,
+    },
+    {
+        'name': 'Прощание',
+        'tokens': ('пока', 'бай', 'свидания', 'прощай',),
+        'scenario': None,
+        'answer': 'Всего доброго.\nУдачного вам дня!'
+    }
+]
+
+SCENARIOS = {
+    'registration': {
+        'first_step': 'step0',
+        'steps': {
+            'step0': {
+                'text': 'Чтобы зарегистрироваться, введите ваше имя.',
+                'failure_text': 'Имя должно состоять из 3-30 букв и дефиса. Попробуйте еще раз.',
+                'handler': 'handle_name',
+                'next_step': 'step1'
+            },
+            'step1': {
+                'text': 'Введите город отправления.',
+                'failure_text': f'Не нашел такого города в своей базе. Попробуйте еще раз.\n'
+                                f'Вылетаем следующими рейсами: {CITIES}',
+                'handler': 'handle_city_from',
+                'next_step': 'step2'
+            },
+            'step2': {
+                'text': 'Введите город прибытия.',
+                'failure_text': f'Не нашел такого города в своей базе. Попробуйте еще раз.\n'
+                                f'Летаем следующими рейсами: {CITIES}',
+                'handler': 'handle_city_to',
+                'next_step': 'step3'
+            },
+            'step3': {
+                'text': 'Введите дату вылета в формате 01-05-2019',
+                'failure_text': 'Это не дата =/. Введите дату в формате 01-05-2019',
+                'handler': 'handle_check_date',
+                'next_step': 'step4'
+            },
+            'step4': {
+                'text': f'Подождите, идет поиск рейсов...',
+                'failure_text': 'Введите число от 0 до 4 для выбора рейса.',
+                'handler': 'handle_choice_flight',
+                'next_step': 'step5'
+            },
+            'step5': {
+                'text': 'Введите желаемое количество мест от 1 до 5',
+                'failure_text': 'Введите желаемое количество мест от 1 до 5',
+                'handler': 'handle_number_seats',
+                'next_step': 'step6'
+            },
+            'step6': {
+                'text': 'Можете написать комментарий:',
+                'failure_text': 'Здесь нельзя ошибиться, но у вас получилось!',
+                'handler': 'handle_comment',
+                'next_step': 'step7'
+            },
+            'step7': {
+                'text': 'Проверьте, пожалуйста, введеные данные, если все верно введите "Да":',
+                'failure_text': 'Значит где-то закралась ошибка, начните, пожалуйста, сначала...',
+                'handler': 'handle_data_refinement',
+                'next_step': 'step8'
+            },
+            'step8': {
+                'text': 'Введите номер телефона в формате 8 123 456 7890',
+                'failure_text': 'Попробуйте еще раз... Введите номер телефона в формате 8 123 456 7890',
+                'handler': 'handle_phone_number',
+                'next_step': 'step9'
+            },
+            'step9': {
+                'text': 'Спасибо за регистрацию!\nВ ближайшее время с вами свяжутся по указаному номеру.',
+                'image': 'generate_ticket_handler',
+                'failure_text': None,
+                'handler': None,
+                'next_step': None
+            },
+        }
+    }
+}
+
+DEFAULT_ANSWER = 'Не знаю как на это ответить.\n' \
+                 'Могу  помочь с выбором билета для этого введите /ticket'
+
+DB_CONFIG = dict(
+    provider='postgres',
+    user='admin',
+    password='',
+    host='localhost',
+    database='vk_bot'
+)

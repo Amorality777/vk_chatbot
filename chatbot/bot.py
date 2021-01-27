@@ -26,7 +26,6 @@ class Bot:
 
     def __init__(self, group_id, token):
         """
-
         :param group_id: group if from vk.com
         :param token: secret token
         """
